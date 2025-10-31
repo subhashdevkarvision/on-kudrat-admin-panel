@@ -17,7 +17,7 @@ import { Modal } from "../components/ui/modal";
 import Input from "../components/form/input/InputField";
 import Label from "../components/form/Label";
 
-interface Language {
+export interface Language {
   _id: string;
   name: string;
   code: string;
@@ -38,7 +38,6 @@ export default function LanguagePage() {
   // 🧾 Save Language (add or edit)
   const handleSaveLanguage = async () => {
     if (!languageName.trim()) {
-      toast.error("Please fill in all fields");
       setError("Language name is required");
       return;
     }
@@ -107,6 +106,7 @@ export default function LanguagePage() {
     setEditingLanguage(lang);
     setLanguageName(lang.name);
     setIsModalOpen(true);
+    setError("");
   };
 
   // ➕ Add
@@ -114,6 +114,7 @@ export default function LanguagePage() {
     setEditingLanguage(null);
     setLanguageName("");
     setIsModalOpen(true);
+    setError("");
   };
 
   // 📦 Fetch
@@ -165,7 +166,7 @@ export default function LanguagePage() {
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {languages.map((lang) => (
               <TableRow key={lang._id}>
-                <TableCell className="px-5 py-4 sm:px-6 text-start">
+                <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                   {lang.name}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
@@ -203,7 +204,7 @@ export default function LanguagePage() {
       {/* Add/Edit Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <div className="p-6 m-0 w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-4">
+          <h2 className="text-lg font-semibold mb-4  dark:text-gray-400">
             {editingLanguage ? "Edit Language" : "Add New Language"}
           </h2>
           <Label htmlFor="languageName">Language Name</Label>
@@ -242,8 +243,10 @@ export default function LanguagePage() {
         onClose={() => setDeleteModal({ open: false })}
       >
         <div className="p-6 w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-2">Delete Language</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-lg font-semibold mb-2  dark:text-gray-400">
+            Delete Language
+          </h2>
+          <p className="text-gray-600 text-theme-sm dark:text-gray-400 mb-6">
             Are you sure you want to delete{" "}
             <span className="font-semibold text-red-600">
               {deleteModal.languageName}

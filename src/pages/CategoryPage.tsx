@@ -16,7 +16,7 @@ import { SquarePen, Trash2Icon } from "lucide-react";
 import { Modal } from "../components/ui/modal";
 import Input from "../components/form/input/InputField";
 import Label from "../components/form/Label";
-interface Category {
+export interface Category {
   _id: string;
   name: string;
 }
@@ -31,15 +31,14 @@ export default function CategoryPage() {
     categoryId?: string;
     categoryName?: string;
   }>({ open: false });
-
+  console.log("error", error);
   const handleSaveCategory = async () => {
-    if (!categoryName.trim() && error) {
-      toast.error("Please enter a category name");
-      setError("Please enter a category name");
-      return;
-    }
-
     try {
+      if (!categoryName.trim()) {
+        setError("Please enter a category name");
+        console.log(error);
+        return;
+      }
       if (editingCategory) {
         // ✏️ Update existing category
         const { data } = await axiosInstance.put(
@@ -69,6 +68,7 @@ export default function CategoryPage() {
       setIsModalOpen(false);
       setCategoryName("");
       setEditingCategory(null);
+      setError("");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         toast.error(error?.response?.data?.message || "Something went wrong");
@@ -98,6 +98,7 @@ export default function CategoryPage() {
     setEditingCategory(cat);
     setCategoryName(cat.name);
     setIsModalOpen(true);
+    setError("");
   };
 
   // ➕ Open modal for add
@@ -105,6 +106,7 @@ export default function CategoryPage() {
     setEditingCategory(null);
     setCategoryName("");
     setIsModalOpen(true);
+    setError("");
   };
 
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function CategoryPage() {
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {category.map((c) => (
               <TableRow key={c._id}>
-                <TableCell className="px-5 py-4 sm:px-6 text-start">
+                <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                   {c.name}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
@@ -199,7 +201,9 @@ export default function CategoryPage() {
         onClose={() => setIsModalOpen(false)}
       >
         <div className="p-6 m-0 w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-4">Add New Category</h2>
+          <h2 className="text-lg font-semibold  dark:text-gray-400 mb-4">
+            Add New Category
+          </h2>
           <Label htmlFor="categoryName">Caterory Name</Label>
           <Input
             type="text"
@@ -217,6 +221,7 @@ export default function CategoryPage() {
                 setIsModalOpen(false);
                 setEditingCategory(null);
                 setCategoryName("");
+                setError("");
               }}
             >
               Cancel
@@ -233,7 +238,9 @@ export default function CategoryPage() {
         onClose={() => setConfirmDelete({ open: false })}
       >
         <div className="p-6  w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-2">Delete Category</h2>
+          <h2 className="text-lg font-semibold mb-2 dark:text-gray-400">
+            Delete Category
+          </h2>
           <p className="text-gray-600 mb-6">
             Are you sure you want to delete{" "}
             <span className="font-semibold text-red-600">

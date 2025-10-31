@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode; // Button text or content
-  size?: "xs" | "sm" | "md"; // Button size
+  size?: "xs" | "sm" | "md" | "icon"; // Button size
   variant?: "primary" | "outline"; // Button variant
   startIcon?: ReactNode; // Icon before the text
   endIcon?: ReactNode; // Icon after the text
@@ -26,6 +26,9 @@ const Button: React.FC<ButtonProps> = ({
     xs: "px-2 py-2 text-sm",
     sm: "px-4 py-3 text-sm",
     md: "px-5 py-3.5 text-sm",
+    icon: "size-9",
+    "icon-sm": "size-8",
+    "icon-lg": "size-10",
   };
 
   // Variant Classes

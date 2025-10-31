@@ -62,31 +62,31 @@ export default function OrderTable() {
           <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
             <TableRow>
               <TableCell
-                isHeader
+                isHeader={true}
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
                 Products
               </TableCell>
               <TableCell
-                isHeader
+                isHeader={true}
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
                 Quantity
               </TableCell>
               <TableCell
-                isHeader
+                isHeader={true}
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
                 Status
               </TableCell>
               <TableCell
-                isHeader
+                isHeader={true}
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
                 Total
               </TableCell>
               <TableCell
-                isHeader
+                isHeader={true}
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
                 Date
@@ -96,65 +96,73 @@ export default function OrderTable() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {orders.map((order) => (
-              <TableRow key={order._id}>
-                {/* Products */}
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <div className="flex flex-col gap-1">
+            {orders.length > 0 ? (
+              orders.map((order) => (
+                <TableRow key={order._id}>
+                  {/* Products */}
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    <div className="flex flex-col gap-1">
+                      {order.cartItems.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <img
+                            src={`${import.meta.env.VITE_BACKEND_URL}${
+                              item.productId?.image
+                            }`}
+                            alt={item.productId?.name}
+                            className="size-16 rounded"
+                          />
+                          <span>{item.productId?.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+
+                  {/* Quantities */}
+                  <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     {order.cartItems.map((item, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <img
-                          src={`${import.meta.env.VITE_BACKEND_URL}${
-                            item.productId?.image
-                          }`}
-                          alt={item.productId?.name}
-                          className="size-16 rounded"
-                        />
-                        <span>{item.productId?.name}</span>
+                      <div
+                        className="h-16 flex justify-start items-center"
+                        key={i}
+                      >
+                        {item.qty}
                       </div>
                     ))}
-                  </div>
-                </TableCell>
+                  </TableCell>
 
-                {/* Quantities */}
-                <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {order.cartItems.map((item, i) => (
-                    <div
-                      className="h-16 flex justify-start items-center"
-                      key={i}
+                  {/* Payment Status */}
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    <Badge
+                      size="sm"
+                      color={
+                        order.paymentStatus === "Pending"
+                          ? "warning"
+                          : order.paymentStatus === "Paid"
+                          ? "success"
+                          : "error"
+                      }
                     >
-                      {item.qty}
-                    </div>
-                  ))}
-                </TableCell>
+                      {order.paymentStatus}
+                    </Badge>
+                  </TableCell>
 
-                {/* Payment Status */}
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Badge
-                    size="sm"
-                    color={
-                      order.paymentStatus === "Pending"
-                        ? "warning"
-                        : order.paymentStatus === "Paid"
-                        ? "success"
-                        : "error"
-                    }
-                  >
-                    {order.paymentStatus}
-                  </Badge>
-                </TableCell>
+                  {/* Total */}
+                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                    ${order.totalAmount.toFixed(2)}
+                  </TableCell>
 
-                {/* Total */}
-                <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  ${order.totalAmount.toFixed(2)}
-                </TableCell>
-
-                {/* Date */}
-                <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {/* Date */}
+                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-5">
+                  No order found
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>

@@ -22,12 +22,20 @@ import { Toaster } from "react-hot-toast";
 import OrdersPage from "./pages/orders/ordersPage";
 import CategoryPage from "./pages/CategoryPage";
 import LanguagePage from "./pages/LanguagePage";
+import UserPage from "./pages/UserPage";
+import ProductPage from "./pages/ProductPage";
+import ProductFormPage from "./components/products/ProductForm";
 
 export default function App() {
   return (
     <>
       <Router>
-        <Toaster />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: { zIndex: 9999999 },
+          }}
+        />
         <ScrollToTop />
         <Routes>
           {/* Dashboard Layout */}
@@ -35,10 +43,13 @@ export default function App() {
             <Route index path="/" element={<Home />} />
 
             {/* Others Page */}
-            <Route path="/products" element={<UserProfiles />} />
+            <Route path="/products" element={<ProductPage />} />
+            {/* <Route path="/products/new" element={<ProductFormPage />} />
+            <Route path="/products/:id/edit" element={<ProductFormPage />} /> */}
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/category" element={<CategoryPage />} />
             <Route path="/language" element={<LanguagePage />} />
+            <Route path="/users" element={<UserPage />} />
             {/* <Route path="/profile" element={<UserProfiles />} /> */}
             {/* <Route path="/calendar" element={<Calendar />} /> */}
             {/* <Route path="/blank" element={<Blank />} /> */}
