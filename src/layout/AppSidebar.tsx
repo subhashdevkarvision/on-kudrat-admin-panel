@@ -17,7 +17,13 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
-import { PackageSearch, Layers2, Languages, PackageCheck } from "lucide-react";
+import {
+  PackageSearch,
+  Layers2,
+  Languages,
+  PackageCheck,
+  LayoutList,
+} from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -57,6 +63,11 @@ const navItems: NavItem[] = [
     icon: <Languages />,
     name: "Languages",
     path: "/language",
+  },
+  {
+    icon: <LayoutList />,
+    name: "blogs",
+    path: "/Blogs",
   },
 
   // {

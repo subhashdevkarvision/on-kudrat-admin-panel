@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
-import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
-import Videos from "./pages/UiElements/Videos";
-import Images from "./pages/UiElements/Images";
-import Alerts from "./pages/UiElements/Alerts";
-import Badges from "./pages/UiElements/Badges";
-import Avatars from "./pages/UiElements/Avatars";
-import Buttons from "./pages/UiElements/Buttons";
-import LineChart from "./pages/Charts/LineChart";
-import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
-import BasicTables from "./pages/Tables/BasicTables";
-import FormElements from "./pages/Forms/FormElements";
-import Blank from "./pages/Blank";
+// import SignUp from "./pages/AuthPages/SignUp";
+// import NotFound from "./pages/OtherPage/NotFound";
+// import UserProfiles from "./pages/UserProfiles";
+// import Videos from "./pages/UiElements/Videos";
+// import Images from "./pages/UiElements/Images";
+// import Alerts from "./pages/UiElements/Alerts";
+// import Badges from "./pages/UiElements/Badges";
+// import Avatars from "./pages/UiElements/Avatars";
+// import Buttons from "./pages/UiElements/Buttons";
+// import LineChart from "./pages/Charts/LineChart";
+// import BarChart from "./pages/Charts/BarChart";
+// import Calendar from "./pages/Calendar";
+// import BasicTables from "./pages/Tables/BasicTables";
+// import FormElements from "./pages/Forms/FormElements";
+// import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -24,7 +24,9 @@ import CategoryPage from "./pages/CategoryPage";
 import LanguagePage from "./pages/LanguagePage";
 import UserPage from "./pages/UserPage";
 import ProductPage from "./pages/ProductPage";
-import ProductFormPage from "./components/products/ProductForm";
+import BlogPage from "./pages/BlogPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
+// import ProductFormPage from "./components/products/ProductForm";
 
 export default function App() {
   return (
@@ -50,6 +52,9 @@ export default function App() {
             <Route path="/category" element={<CategoryPage />} />
             <Route path="/language" element={<LanguagePage />} />
             <Route path="/users" element={<UserPage />} />
+            <Route path="/blogs" element={<BlogPage />} />
+            <Route path="/blog/add" element={<BlogDetailPage />} />
+            <Route path="/blog/add/:id" element={<BlogDetailPage />} />
             {/* <Route path="/profile" element={<UserProfiles />} /> */}
             {/* <Route path="/calendar" element={<Calendar />} /> */}
             {/* <Route path="/blank" element={<Blank />} /> */}

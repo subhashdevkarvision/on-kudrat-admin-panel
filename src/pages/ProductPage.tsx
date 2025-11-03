@@ -21,7 +21,7 @@ import Form from "../components/form/Form";
 import Label from "../components/form/Label";
 import Input from "../components/form/input/InputField";
 import MultiSelect from "../components/form/MultiSelect";
-import Checkbox from "../components/form/input/Checkbox";
+// import Checkbox from "../components/form/input/Checkbox";
 import FileInput from "../components/form/input/FileInput";
 
 interface Product {
@@ -32,8 +32,8 @@ interface Product {
   image: string;
   isFeatured: boolean;
   isBestSeller: boolean;
-  category: string;
-  language: string;
+  categoryId: string;
+  languageId: string;
 }
 
 const ProductPage = () => {
@@ -42,10 +42,12 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
   const [languageOptions, setLanguageOptions] = useState<Option[]>([]);
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
-  const [isDealOfTheWeek, setIsDealOfTheWeek] = useState<boolean>(false);
+  // const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  // const [isDealOfTheWeek, setIsDealOfTheWeek] = useState<boolean>(false);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editProductId, setEditProductId] = useState<string | null>(null);
   const [formdata, setFormData] = useState({
     name: "",
     price: "",
@@ -54,8 +56,20 @@ const ProductPage = () => {
     language: "",
     isBestSeller: false,
     isFeartured: false,
-    isDealOfTheWeek: false,
   });
+  const [errors, setErrors] = useState({
+    name: "",
+    price: "",
+    discountedPrice: "",
+    category: "",
+    language: "",
+    image: "",
+  });
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    productId?: string;
+    productName?: string;
+  }>({ open: false });
   const multiOptions = [
     { value: "isFeatured", text: "Featured", selected: false },
     { value: "isBestSeller", text: "Best Seller", selected: false },
@@ -102,7 +116,6 @@ const ProductPage = () => {
         const languages = data?.data.map((item: Language) => {
           return { value: item._id, label: item.name };
         });
-        console.log("languages", languages);
         setLanguageOptions(languages);
       }
     } catch (error: unknown) {
@@ -113,9 +126,71 @@ const ProductPage = () => {
       }
     }
   };
+  const handleEditClick = (product: Product) => {
+    setIsModelOpen(true);
+    setIsEditMode(true);
+    setEditProductId(product._id);
+    setFormData({
+      name: product.name,
+      price: String(product.price),
+      discountedPrice: String(product.discountedPrice),
+      category: product.categoryId,
+      language: product.languageId,
+      isBestSeller: product.isBestSeller,
+      isFeartured: product.isFeatured,
+    });
 
+    setImagePreview(`${import.meta.env.VITE_BACKEND_URL}${product.image}`);
+  };
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      price: "",
+      discountedPrice: "",
+      category: "",
+      language: "",
+      isBestSeller: false,
+      isFeartured: false,
+    });
+    setErrors({
+      name: "",
+      price: "",
+      discountedPrice: "",
+      category: "",
+      language: "",
+      image: "",
+    });
+    setImage(null);
+    setImagePreview(null);
+    setIsEditMode(false);
+    setEditProductId(null);
+  };
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    if (!formdata.name.trim()) newErrors.name = "Product name is required.";
+    if (!formdata.price) newErrors.price = "Price is required.";
+    else if (isNaN(Number(formdata.price)))
+      newErrors.price = "Price must be a number.";
+
+    if (!formdata.discountedPrice)
+      newErrors.discountedPrice = "Discounted price is required.";
+    else if (isNaN(Number(formdata.discountedPrice)))
+      newErrors.discountedPrice = "Discounted price must be a number.";
+
+    if (!formdata.category) newErrors.category = "Please select a category.";
+    if (!formdata.language) newErrors.language = "Please select a language.";
+
+    if (!isEditMode && !image)
+      newErrors.image = "Please upload a product image.";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     const formDataToSend = new FormData();
     formDataToSend.append("name", formdata.name);
     formDataToSend.append("price", formdata.price);
@@ -123,24 +198,27 @@ const ProductPage = () => {
     formDataToSend.append("categoryId", formdata.category);
     formDataToSend.append("languageId", formdata.language);
     formDataToSend.append("isBestSeller", String(formdata.isBestSeller));
-    formDataToSend.append("isFeartured", String(formdata.isFeartured));
-    formDataToSend.append("isDealOfTheWeek", String(formdata.isDealOfTheWeek));
+    formDataToSend.append("isFeatured", String(formdata.isFeartured));
+    // formDataToSend.append("isDealOfTheWeek", String(isDealOfTheWeek));
     if (image) {
       formDataToSend.append("image", image);
     }
-    console.log(formDataToSend);
     try {
-      const { data } = await axiosInstance.post(
-        "/product/add",
-        formDataToSend,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const { data } = isEditMode
+        ? await axiosInstance.put(`/product/${editProductId}`, formDataToSend, {
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+        : await axiosInstance.post("/product/add", formDataToSend, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
       if (data.success) {
         toast.success(data?.message);
         setIsModelOpen(false);
+
         fetchProducts();
       }
     } catch (error) {
+      console.log(error);
       if (axios.isAxiosError(error)) {
         toast.error(error?.response?.data?.message);
       }
@@ -150,7 +228,9 @@ const ProductPage = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await axiosInstance.get("/product?limit=15");
+      const { data } = await axiosInstance.get(
+        "/product/all-products?limit=18"
+      );
       if (data?.success) {
         setLoading(false);
         setProducts(data.products);
@@ -166,6 +246,21 @@ const ProductPage = () => {
       setLoading(false);
     }
   };
+  const handleDelete = async () => {
+    if (!deleteModal.productId) return;
+    try {
+      const { data } = await axiosInstance.delete(
+        `/product/${deleteModal.productId}`
+      );
+      if (data.success) {
+        toast.success("Product deleted");
+        setDeleteModal({ open: false });
+        fetchProducts();
+      }
+    } catch {
+      toast.error("Failed to delete Product");
+    }
+  };
   useEffect(() => {
     fetchProducts();
     fetchAllCategory();
@@ -174,8 +269,8 @@ const ProductPage = () => {
   if (loading) return <p className="p-5">Loading...</p>;
   return (
     <>
-      <PageMeta title="Language Management" description="Manage languages" />
-      <PageBreadcrumb pageTitle="Language" />
+      <PageMeta title="Product Management" description="Manage Products" />
+      <PageBreadcrumb pageTitle="Products" />
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         <div>
           <Button
@@ -203,13 +298,13 @@ const ProductPage = () => {
                       isHeader={true}
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
-                      MRP
+                      Price
                     </TableCell>
                     <TableCell
                       isHeader={true}
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
-                      Price
+                      Discount price
                     </TableCell>
                     <TableCell className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                       Actions
@@ -253,7 +348,7 @@ const ProductPage = () => {
                               size="xs"
                               variant="outline"
                               className="rounded-full"
-                              //   onClick={() => openEditModal(c)}
+                              onClick={() => handleEditClick(product)}
                             >
                               <SquarePen color="blue" size={20} />
                             </Button>
@@ -261,13 +356,13 @@ const ProductPage = () => {
                               size="xs"
                               variant="outline"
                               className="rounded-full"
-                              // onClick={() =>
-                              //   setConfirmDelete({
-                              //     open: true,
-                              //     categoryId: c._id,
-                              //     categoryName: c.name,
-                              //   })
-                              // }
+                              onClick={() => {
+                                setDeleteModal({
+                                  open: true,
+                                  productId: product._id,
+                                  productName: product.name,
+                                });
+                              }}
                             >
                               <Trash2Icon color="red" size={20} />
                             </Button>
@@ -288,59 +383,105 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
-      <Modal onClose={() => setIsModelOpen(false)} isOpen={isModelOpen}>
+      <Modal
+        onClose={() => {
+          setIsModelOpen(false);
+          resetForm();
+        }}
+        isOpen={isModelOpen}
+      >
         <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
           <h2 className="text-lg font-semibold mb-4  dark:text-gray-400">
-            "Add New Language"
+            {isEditMode ? "Edit Product" : "Add Product"}
           </h2>
-          <Form onSubmit={handleSubmit}>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              name="name"
-              onChange={handleInputChange}
-              value={formdata.name}
-              type="text"
-              placeholder="Enter Product Name"
-            />
-            <Label htmlFor="price">MRP</Label>
-            <Input
-              name="price"
-              type="text"
-              onChange={handleInputChange}
-              value={formdata.price}
-              placeholder="Enter Product MRP"
-            />
-            <Label htmlFor="discountedPrice">Price</Label>
-            <Input
-              name="discountedPrice"
-              type="text"
-              placeholder="Enter Product Price"
-              onChange={handleInputChange}
-              value={formdata.discountedPrice}
-            />
-            <Label htmlFor="language">Select Language</Label>
-            <Select
-              options={languageOptions}
-              placeholder="Select Option"
-              onChange={(value) =>
-                setFormData({ ...formdata, language: value })
-              }
-              className="dark:bg-dark-900"
-              defaultValue={formdata.language}
-            />
-            <Label htmlFor="Category">Select Category</Label>
-            <Select
-              options={categoryOptions}
-              placeholder="Select Option"
-              onChange={(value) =>
-                setFormData({ ...formdata, category: value })
-              }
-              className="dark:bg-dark-900"
-              defaultValue={formdata.category}
-            />
+          <Form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 gap-x-10 gap-y-5 "
+          >
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                name="name"
+                onChange={handleInputChange}
+                value={formdata.name}
+                type="text"
+                placeholder="Enter Product Name"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 ">
+              <div>
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  name="price"
+                  type="text"
+                  onChange={handleInputChange}
+                  value={formdata.price}
+                  placeholder="Enter Product price"
+                />
+                {errors.price && (
+                  <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="discountedPrice">Discount Price</Label>
+                <Input
+                  name="discountedPrice"
+                  type="text"
+                  placeholder="Enter Product Discount Price"
+                  onChange={handleInputChange}
+                  value={formdata.discountedPrice}
+                />
+                {errors.discountedPrice && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.discountedPrice}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                {" "}
+                <Label htmlFor="language">Select Language</Label>
+                <Select
+                  options={languageOptions}
+                  placeholder="Select Option"
+                  onChange={(value) =>
+                    setFormData({ ...formdata, language: value })
+                  }
+                  className="dark:bg-dark-900"
+                  defaultValue={formdata.language}
+                />
+                {errors.language && (
+                  <p className="text-red-500 text-sm mt-1">{errors.language}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="Category">Select Category</Label>
+                <Select
+                  options={categoryOptions}
+                  placeholder="Select Option"
+                  onChange={(value) =>
+                    setFormData({ ...formdata, category: value })
+                  }
+                  className="dark:bg-dark-900"
+                  defaultValue={formdata.category}
+                />
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+                )}
+              </div>
+            </div>
             <MultiSelect
               label="Multiple Select Options"
               options={multiOptions}
+              defaultSelected={[
+                ...(formdata.isFeartured ? ["isFeartured"] : []),
+                ...(formdata.isBestSeller ? ["isBestSeller"] : []),
+              ]}
               onChange={(values) => {
                 setFormData((prev) => ({
                   ...prev,
@@ -349,13 +490,19 @@ const ProductPage = () => {
                 }));
               }}
             />
-            <Checkbox
+            {/* <Checkbox
               label="Deal of the week"
               checked={isDealOfTheWeek}
               onChange={setIsDealOfTheWeek}
             />
-            <Label htmlFor="Image">Image</Label>
-            <FileInput name="image" onChange={handleImageChange} />
+            <Label htmlFor="Image">Image</Label> */}
+            <div>
+              <Label htmlFor="image">Image</Label>
+              <FileInput name="image" onChange={handleImageChange} />
+              {errors.image && (
+                <p className="text-red-500 text-sm mt-1">{errors.image}</p>
+              )}
+            </div>
             {imagePreview && (
               <div className="relative inline-block">
                 <img
@@ -372,8 +519,40 @@ const ProductPage = () => {
                 </button>
               </div>
             )}
-            <Button type="submit">Add</Button>
+            <Button type="submit">{isEditMode ? "Update" : "Add"}</Button>
           </Form>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={deleteModal.open}
+        showCloseButton={false}
+        onClose={() => setDeleteModal({ open: false })}
+      >
+        <div className="p-6 w-full max-w-[500px]">
+          <h2 className="text-lg font-semibold mb-2  dark:text-gray-400">
+            Delete Product
+          </h2>
+          <p className="text-gray-600 text-theme-sm dark:text-gray-400 mb-6">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-red-600">
+              {deleteModal.productName}
+            </span>
+            ?
+          </p>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModal({ open: false })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </Button>
+          </div>
         </div>
       </Modal>
     </>

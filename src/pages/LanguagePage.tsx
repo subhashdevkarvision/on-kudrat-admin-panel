@@ -82,7 +82,6 @@ export default function LanguagePage() {
     }
   };
 
-  // 🗑️ Delete
   const handleDelete = async () => {
     if (!deleteModal.languageId) return;
     try {
