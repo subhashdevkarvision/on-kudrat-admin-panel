@@ -1,60 +1,74 @@
-// import React from "react";
-// import {
-//   Pagination,
-//   PaginationContent,
-//   PaginationItem,
-//   PaginationLink,
-//   PaginationNext,
-// } from "../ui/pagination";
-// import Button from "../ui/button/Button";
+import React from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
 
-// const PaginationComponent = ({ currentPage, onPageChange, totalPages }) => {
-//   const handlePageClick = (p) => {
-//     if (currentPage !== p) {
-//       onpageChange(p);
-//       window.scrollTo(0, 0);
-//     }
-//   };
-//   return (
-//     <Pagination className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-4">
-//       <PaginationContent>
-//         {pages.map((item) => (
-//           <PaginationItem key={item}>
-//             <PaginationLink
-//               onClick={() => handlePageClick(item)}
-//               isActive={currentPage === item}
-//               className={`${
-//                 currentPage === item
-//                   ? "bg-text-green text-white"
-//                   : "hover:bg-gray-100"
-//               } rounded-full cursor-pointer`}
-//             >
-//               {item}
-//             </PaginationLink>
-//           </PaginationItem>
-//         ))}
-//         <PaginationItem>
-//           <PaginationNext
-//             onClick={() =>
-//               handlePageClick(Math.min(totalPages, currentPage + 1))
-//             }
-//             className={
-//               currentPage === totalPages
-//                 ? "pointer-events-none opacity-50 cursor-pointer"
-//                 : "cursor-pointer"
-//             }
-//           />
-//         </PaginationItem>
-//         <Button
-//           variant="outline"
-//           className="rounded-full font-medium px-8 py-5 cursor-pointer"
-//           onClick={() => handlePageClick(totalPages)}
-//         >
-//           Last
-//         </Button>
-//       </PaginationContent>
-//     </Pagination>
-//   );
-// };
+interface PaginationComponentProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
 
-// export default PaginationComponent;
+const PaginationComponent: React.FC<PaginationComponentProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const handlePageClick = (p: number) => {
+    if (currentPage !== p) {
+      onPageChange(p);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <Pagination className="flex flex-wrap justify-center gap-2 sm:gap-4">
+      <PaginationContent className="space-x-3">
+        <PaginationItem>
+          <PaginationPrevious
+            onClick={() => handlePageClick(Math.max(1, currentPage - 1))}
+            className={`cursor-pointer ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          />
+        </PaginationItem>
+
+        {pages.map((item) => (
+          <PaginationItem key={item}>
+            <PaginationLink
+              onClick={() => handlePageClick(item)}
+              isActive={currentPage === item}
+              className={`rounded-full cursor-pointer px-3 py-1 transition-all ${
+                currentPage === item
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-black hover:bg-gray-100"
+              }`}
+            >
+              {item}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+
+        <PaginationItem>
+          <PaginationNext
+            onClick={() =>
+              handlePageClick(Math.min(totalPages, currentPage + 1))
+            }
+            className={`cursor-pointer ${
+              currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+};
+
+export default PaginationComponent;

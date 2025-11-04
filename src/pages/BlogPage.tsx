@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Modal } from "../components/ui/modal";
 import toast from "react-hot-toast";
+import PaginationComponent from "../components/paginationComponent/PaginationComponent";
 
 interface Blog {
   _id: string;
@@ -29,31 +30,36 @@ export default function BlogPage() {
     id: "",
     blogTitle: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
 
-  const fetchBlogs = async () => {
+  const fetchBlogs = async (page = 1) => {
     try {
-      const { data } = await axiosInstance.get("/blog");
+      const { data } = await axiosInstance.get(`/blog?page=${page}&limit=5`);
       if (data.success) {
         setBlogs(data.data);
+        setTotalPages(data.pagination.pages);
+        setCurrentPage(data.pagination.page);
       }
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
     }
   };
 
-  useEffect(() => {
-    fetchBlogs();
-  }, []);
-
   const handleDelete = async () => {
     try {
       const { id } = confirmDelete;
       const { data } = await axiosInstance.delete(`/blog/${id}`);
       if (data.success) {
-        setBlogs((prev) => prev.filter((b) => b._id !== id));
         toast.success(data?.message);
+        const updatedBlogs = blogs.filter((b) => b._id !== id);
+        if (updatedBlogs.length === 0 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          fetchBlogs(currentPage);
+        }
       }
     } catch (error) {
       console.error("Failed to delete blog:", error);
@@ -61,7 +67,9 @@ export default function BlogPage() {
       setConfirmDelete({ open: false, id: "", blogTitle: "" });
     }
   };
-
+  useEffect(() => {
+    fetchBlogs(currentPage);
+  }, [currentPage]);
   return (
     <>
       <PageMeta
@@ -99,51 +107,68 @@ export default function BlogPage() {
           </TableHeader>
 
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {blogs.map((b) => (
-              <TableRow key={b._id}>
-                <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                  <img
-                    src={`${import.meta.env.VITE_BACKEND_URL}${b.image}`}
-                    className="size-32 rounded"
-                    alt={b.title}
-                  />
-                </TableCell>
-                <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {b.title}
-                </TableCell>
-                <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {new Date(b.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
-                  <div className="flex gap-5 justify-end">
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => navigate(`/blog/add/${b._id}`)}
-                    >
-                      <SquarePen color="blue" size={20} />
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() =>
-                        setConfirmDelete({
-                          open: true,
-                          id: b._id,
-                          blogTitle: b.title,
-                        })
-                      }
-                    >
-                      <Trash2Icon color="red" size={20} />
-                    </Button>
-                  </div>
+            {blogs.length > 0 ? (
+              blogs.map((b) => (
+                <TableRow key={b._id}>
+                  <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                    <img
+                      src={`${import.meta.env.VITE_BACKEND_URL}${b.image}`}
+                      className="size-32 rounded"
+                      alt={b.title}
+                    />
+                  </TableCell>
+                  <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
+                    {b.title}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
+                    {new Date(b.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
+                    <div className="flex gap-5 justify-end">
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() => navigate(`/blog/add/${b._id}`)}
+                      >
+                        <SquarePen color="blue" size={20} />
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() =>
+                          setConfirmDelete({
+                            open: true,
+                            id: b._id,
+                            blogTitle: b.title,
+                          })
+                        }
+                      >
+                        <Trash2Icon color="red" size={20} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-5">
+                  No Blogs Found
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
+        <div className="mt-6">
+          {blogs.length > 0 && (
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          )}
+        </div>
       </div>
 
       <Modal
@@ -158,17 +183,17 @@ export default function BlogPage() {
         }
       >
         <div className="p-6 w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-2 dark:text-gray-400">
+          <h2 className="text-xl font-semibold mb-2 dark:text-gray-400">
             Delete Blog
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 text-xl mb-6">
             Are you sure you want to delete{" "}
             <span className="font-semibold text-red-600">
               {confirmDelete.blogTitle}
             </span>
             ?
           </p>
-          <div className="flex gap-4">
+          <div className="flex justify-end gap-4">
             <Button
               variant="outline"
               onClick={() =>

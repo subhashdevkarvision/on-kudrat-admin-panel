@@ -242,17 +242,17 @@ export default function LanguagePage() {
         onClose={() => setDeleteModal({ open: false })}
       >
         <div className="p-6 w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-2  dark:text-gray-400">
+          <h2 className="text-xl font-semibold mb-2  dark:text-gray-400">
             Delete Language
           </h2>
-          <p className="text-gray-600 text-theme-sm dark:text-gray-400 mb-6">
+          <p className="text-gray-600 text-xl dark:text-gray-400 mb-6">
             Are you sure you want to delete{" "}
             <span className="font-semibold text-red-600">
               {deleteModal.languageName}
             </span>
             ?
           </p>
-          <div className="flex gap-4">
+          <div className="flex justify-end gap-4">
             <Button
               variant="outline"
               onClick={() => setDeleteModal({ open: false })}

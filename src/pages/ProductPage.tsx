@@ -23,6 +23,7 @@ import Input from "../components/form/input/InputField";
 import MultiSelect from "../components/form/MultiSelect";
 // import Checkbox from "../components/form/input/Checkbox";
 import FileInput from "../components/form/input/FileInput";
+import PaginationComponent from "../components/paginationComponent/PaginationComponent";
 
 interface Product {
   _id: string;
@@ -32,10 +33,23 @@ interface Product {
   image: string;
   isFeatured: boolean;
   isBestSeller: boolean;
-  categoryId: string;
-  languageId: string;
+  categoryId: {
+    _id: string;
+    name: string;
+  };
+  languageId: {
+    _id: string;
+    name: string;
+  };
 }
-
+interface ValidationErrors {
+  name?: string;
+  price?: string;
+  discountedPrice?: string;
+  category?: string;
+  language?: string;
+  image?: string;
+}
 const ProductPage = () => {
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [Products, setProducts] = useState<Product[]>([]);
@@ -48,6 +62,8 @@ const ProductPage = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editProductId, setEditProductId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [formdata, setFormData] = useState({
     name: "",
     price: "",
@@ -57,7 +73,7 @@ const ProductPage = () => {
     isBestSeller: false,
     isFeartured: false,
   });
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<ValidationErrors>({
     name: "",
     price: "",
     discountedPrice: "",
@@ -134,8 +150,8 @@ const ProductPage = () => {
       name: product.name,
       price: String(product.price),
       discountedPrice: String(product.discountedPrice),
-      category: product.categoryId,
-      language: product.languageId,
+      category: product.categoryId._id,
+      language: product.languageId._id,
       isBestSeller: product.isBestSeller,
       isFeartured: product.isFeatured,
     });
@@ -166,7 +182,7 @@ const ProductPage = () => {
     setEditProductId(null);
   };
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: ValidationErrors = {};
 
     if (!formdata.name.trim()) newErrors.name = "Product name is required.";
     if (!formdata.price) newErrors.price = "Price is required.";
@@ -225,18 +241,17 @@ const ProductPage = () => {
       toast.error("Something went wrong");
     }
   };
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
       const { data } = await axiosInstance.get(
-        "/product/all-products?limit=18"
+        `/product/all-products?page=${page}&limit=5`
       );
       if (data?.success) {
-        setLoading(false);
         setProducts(data.products);
+        setTotalPages(data.totalPages);
       }
     } catch (error: unknown) {
-      setLoading(false);
       if (axios.isAxiosError(error)) {
         toast.error(error?.response?.data?.message || "Something went wrong");
       } else {
@@ -255,17 +270,21 @@ const ProductPage = () => {
       if (data.success) {
         toast.success("Product deleted");
         setDeleteModal({ open: false });
-        fetchProducts();
+        fetchProducts(currentPage);
       }
     } catch {
       toast.error("Failed to delete Product");
     }
   };
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchProducts(page);
+  };
   useEffect(() => {
-    fetchProducts();
+    fetchProducts(currentPage);
     fetchAllCategory();
     fetchLanguages();
-  }, []);
+  }, [currentPage]);
   if (loading) return <p className="p-5">Loading...</p>;
   return (
     <>
@@ -292,7 +311,25 @@ const ProductPage = () => {
                       isHeader={true}
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
-                      Products
+                      Image
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Name
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Category
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Language
                     </TableCell>
                     <TableCell
                       isHeader={true}
@@ -319,20 +356,23 @@ const ProductPage = () => {
                       <TableRow key={product._id}>
                         {/* Products */}
                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-10">
-                              <img
-                                src={`${import.meta.env.VITE_BACKEND_URL}${
-                                  product.image
-                                }`}
-                                alt={product.name}
-                                className="size-32 rounded"
-                              />
-                              <span>{product.name}</span>
-                            </div>
-                          </div>
+                          <img
+                            src={`${import.meta.env.VITE_BACKEND_URL}${
+                              product.image
+                            }`}
+                            alt={product.name}
+                            className="size-32 rounded"
+                          />
                         </TableCell>
-
+                        <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {product.name}
+                        </TableCell>
+                        <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {product.categoryId?.name}
+                        </TableCell>
+                        <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {product.languageId?.name}
+                        </TableCell>
                         {/* Quantities */}
                         <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {product.price}
@@ -383,6 +423,15 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center">
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
       <Modal
         onClose={() => {
           setIsModelOpen(false);
@@ -513,7 +562,7 @@ const ProductPage = () => {
                 <button
                   type="button"
                   onClick={handleRemoveImage}
-                  className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-200"
+                  className="absolute -top-4 left-36 bg-white rounded-full p-1 shadow-md hover:bg-gray-200"
                 >
                   <X />
                 </button>
@@ -528,18 +577,18 @@ const ProductPage = () => {
         showCloseButton={false}
         onClose={() => setDeleteModal({ open: false })}
       >
-        <div className="p-6 w-full max-w-[500px]">
-          <h2 className="text-lg font-semibold mb-2  dark:text-gray-400">
+        <div className="p-6 w-full">
+          <h2 className="text-xl font-semibold mb-2  dark:text-gray-400">
             Delete Product
           </h2>
-          <p className="text-gray-600 text-theme-sm dark:text-gray-400 mb-6">
+          <p className="text-gray-600 text-xl dark:text-gray-400 mb-6">
             Are you sure you want to delete{" "}
             <span className="font-semibold text-red-600">
               {deleteModal.productName}
             </span>
             ?
           </p>
-          <div className="flex gap-4">
+          <div className="flex justify-end gap-4">
             <Button
               variant="outline"
               onClick={() => setDeleteModal({ open: false })}
