@@ -58,7 +58,6 @@ export default function SignInForm() {
         email,
         password,
       });
-      console.log(data);
       if (data.success && data.role === "admin") {
         setAlert({
           variant: "success",

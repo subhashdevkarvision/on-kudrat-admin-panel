@@ -32,6 +32,7 @@ export default function BlogPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalBlogs, setTotalBlogs] = useState(1);
 
   const navigate = useNavigate();
 
@@ -42,6 +43,7 @@ export default function BlogPage() {
         setBlogs(data.data);
         setTotalPages(data.pagination.pages);
         setCurrentPage(data.pagination.page);
+        setTotalBlogs(data.pagination.total);
       }
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
@@ -79,92 +81,100 @@ export default function BlogPage() {
       <PageBreadcrumb pageTitle="Blogs" />
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <Button className="float-end" onClick={() => navigate("/blog/add")}>
-          Add blog
-        </Button>
-        <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-            <TableRow>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Image
-              </TableCell>
-              <TableCell className="px-5 py-3 font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Title
-              </TableCell>
-              <TableCell className="px-5 py-3 font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Created At
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
-              >
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {blogs.length > 0 ? (
-              blogs.map((b) => (
-                <TableRow key={b._id}>
-                  <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                    <img
-                      src={`${import.meta.env.VITE_BACKEND_URL}${b.image}`}
-                      className="size-32 rounded"
-                      alt={b.title}
-                    />
+        <div className="flex justify-end">
+          <Button className="" onClick={() => navigate("/blog/add")}>
+            Add blog
+          </Button>
+        </div>
+        <div className="overflow-hidden my-10 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+          <div className="max-w-full overflow-x-auto">
+            <Table>
+              <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                <TableRow>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Image
                   </TableCell>
-                  <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {b.title}
+                  <TableCell className="px-5 py-3 font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                    Title
                   </TableCell>
-                  <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {new Date(b.createdAt).toLocaleDateString()}
+                  <TableCell className="px-5 py-3 font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                    Created At
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
-                    <div className="flex gap-5 justify-end">
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        className="rounded-full"
-                        onClick={() => navigate(`/blog/add/${b._id}`)}
-                      >
-                        <SquarePen color="blue" size={20} />
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        className="rounded-full"
-                        onClick={() =>
-                          setConfirmDelete({
-                            open: true,
-                            id: b._id,
-                            blogTitle: b.title,
-                          })
-                        }
-                      >
-                        <Trash2Icon color="red" size={20} />
-                      </Button>
-                    </div>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
+                  >
+                    Actions
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-5">
-                  No Blogs Found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+
+              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                {blogs.length > 0 ? (
+                  blogs.map((b) => (
+                    <TableRow key={b._id}>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        <img
+                          src={`${import.meta.env.VITE_BACKEND_URL}${b.image}`}
+                          className="size-32 rounded"
+                          alt={b.title}
+                        />
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {b.title}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {new Date(b.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
+                        <div className="flex gap-5 justify-end">
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={() => navigate(`/blog/add/${b._id}`)}
+                          >
+                            <SquarePen color="blue" size={20} />
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={() =>
+                              setConfirmDelete({
+                                open: true,
+                                id: b._id,
+                                blogTitle: b.title,
+                              })
+                            }
+                          >
+                            <Trash2Icon color="red" size={20} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-5">
+                      No Blogs Found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
         <div className="mt-6">
           {blogs.length > 0 && (
             <PaginationComponent
               currentPage={currentPage}
               totalPages={totalPages}
+              limit={5}
+              totals={totalBlogs}
               onPageChange={(page) => setCurrentPage(page)}
             />
           )}

@@ -1,32 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
+  // ArrowDownIcon,
+  // ArrowUpIcon,
   BoxIconLine,
   GroupIcon,
 } from "../../icons";
 import Select from "../form/Select";
-import Badge from "../ui/badge/Badge";
+// import Badge from "../ui/badge/Badge";
+import { axiosInstance } from "../../api";
 
 export default function EcommerceMetrics() {
-  const [selectedDuration, setSelectedDuration] = useState("Today");
+  const [selectedDuration, setSelectedDuration] = useState("today");
+  const [orders, setOrders] = useState(0);
+  const [users, setUsers] = useState(0);
   const filterOptions = [
-    { value: "Today", label: "Today" },
-    { value: "Weekly", label: "Weekly" },
-    { value: "Monthly", label: "Monthly" },
-    { value: "This Month", label: "This Month" },
-    { value: "This Month", label: "This Month" },
+    { value: "today", label: "Today" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
+    { value: "this Month", label: "This Month" },
+    { value: "till Now", label: "Till Now" },
   ];
+
+  useEffect(() => {
+    const fetchTotalOrderAndUser = async (selectedDuration: string) => {
+      const { data } = await axiosInstance.get(
+        `/stats?filter=${selectedDuration}`
+      );
+      if (data.success) {
+        setOrders(data.data.totalOrders);
+        setUsers(data.data.totalUsers);
+      }
+    };
+    fetchTotalOrderAndUser(selectedDuration);
+  }, [selectedDuration]);
   return (
-    <div>
+    <div className="space-y-5">
       <div className="flex justify-between items-center">
         <h4>Overview</h4>
-        <Select
-          defaultValue={selectedDuration}
-          options={filterOptions}
-          onChange={(value) => setSelectedDuration(value)}
-          className="w-10"
-        />
+        <div>
+          <Select
+            defaultValue={selectedDuration}
+            options={filterOptions}
+            onChange={(value) => setSelectedDuration(value)}
+            className="w-10 rounded-full"
+          />
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
         {/* <!-- Metric Item Start --> */}
@@ -38,16 +56,16 @@ export default function EcommerceMetrics() {
           <div className="flex items-end justify-between mt-5">
             <div>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Customers
+                Users
               </span>
               <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                3,782
+                {users}
               </h4>
             </div>
-            <Badge color="success">
+            {/* <Badge color="success">
               <ArrowUpIcon />
               11.01%
-            </Badge>
+            </Badge> */}
           </div>
         </div>
         {/* <!-- Metric Item End --> */}
@@ -63,14 +81,14 @@ export default function EcommerceMetrics() {
                 Orders
               </span>
               <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                5,359
+                {orders}
               </h4>
             </div>
 
-            <Badge color="error">
+            {/* <Badge color="error">
               <ArrowDownIcon />
               9.05%
-            </Badge>
+            </Badge> */}
           </div>
         </div>
         {/* <!-- Metric Item End --> */}

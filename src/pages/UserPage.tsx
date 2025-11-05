@@ -25,6 +25,7 @@ const UserPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   const fetchAllUsers = async (currentPage: number) => {
     try {
@@ -34,6 +35,7 @@ const UserPage = () => {
       if (data.success) {
         setUsers(data.data);
         setTotalPages(data?.pagination?.pages);
+        setTotalUsers(data.pagination.total);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -53,60 +55,64 @@ const UserPage = () => {
       />
       <PageBreadcrumb pageTitle="Users" />
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <div className="max-w-full overflow-x-auto">
-          <Table>
-            {/* Table Header */}
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-                <TableCell
-                  isHeader={true}
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  User Name
-                </TableCell>
-                <TableCell
-                  isHeader={true}
-                  className="px-5 py-3 font-medium text-gray-500 text-start  text-theme-xs dark:text-gray-400"
-                >
-                  Email
-                </TableCell>
-                <TableCell
-                  isHeader={true}
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Role
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-
-            {/* Table Body */}
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                    {user.name}
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
+          <div className="max-w-full overflow-x-auto">
+            <Table>
+              {/* Table Header */}
+              <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                <TableRow>
+                  <TableCell
+                    isHeader={true}
+                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    User Name
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {user.email}
+                  <TableCell
+                    isHeader={true}
+                    className="px-5 py-3 font-medium text-gray-500 text-start  text-theme-xs dark:text-gray-400"
+                  >
+                    Email
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    <Badge
-                      size="sm"
-                      color={user.role === "user" ? "warning" : "success"}
-                    >
-                      {user.role}
-                    </Badge>
+                  <TableCell
+                    isHeader={true}
+                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Role
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+
+              {/* Table Body */}
+              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                {users.map((user) => (
+                  <TableRow key={user._id}>
+                    <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                      {user.name}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {user.email}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                      <Badge
+                        size="sm"
+                        color={user.role === "user" ? "warning" : "success"}
+                      >
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
         <div className="my-5">
           {users.length > 0 && (
             <PaginationComponent
               totalPages={totalPages}
               currentPage={currentPage}
+              limit={10}
+              totals={totalUsers}
               onPageChange={(newPage) => setCurrentPage(newPage)}
             />
           )}

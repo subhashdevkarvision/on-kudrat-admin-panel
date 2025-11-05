@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import PaginationComponent from "../../paginationComponent/PaginationComponent";
 
-interface Order {
+export interface Order {
   _id: string;
   userId: {
     _id: string;
@@ -38,6 +38,7 @@ export default function OrderTable() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   useEffect(() => {
     const fetchOrders = async (currentPage: number) => {
       try {
@@ -49,6 +50,7 @@ export default function OrderTable() {
           setLoading(false);
           setOrders(data.orders);
           setTotalPages(data.pagination.pages);
+          setTotalOrders(data.pagination.total);
         }
       } catch (error: unknown) {
         setLoading(false);
@@ -211,16 +213,18 @@ export default function OrderTable() {
             </TableBody>
           </Table>
         </div>
-        {orders.length > 0 && (
-          <div className="my-5">
-            <PaginationComponent
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={(newPage) => setCurrentPage(newPage)}
-            />
-          </div>
-        )}
       </div>
+      {orders.length > 0 && (
+        <div className="my-5 ">
+          <PaginationComponent
+            totalPages={totalPages}
+            currentPage={currentPage}
+            limit={10}
+            totals={totalOrders}
+            onPageChange={(newPage) => setCurrentPage(newPage)}
+          />
+        </div>
+      )}
     </>
   );
 }

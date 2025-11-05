@@ -16,6 +16,7 @@ import { SquarePen, Trash2Icon } from "lucide-react";
 import { Modal } from "../components/ui/modal";
 import Input from "../components/form/input/InputField";
 import Label from "../components/form/Label";
+import PaginationComponent from "../components/paginationComponent/PaginationComponent";
 export interface Category {
   _id: string;
   name: string;
@@ -26,6 +27,9 @@ export default function CategoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCategories, setTotalCategories] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     categoryId?: string;
@@ -110,11 +114,15 @@ export default function CategoryPage() {
   };
 
   useEffect(() => {
-    const fetchCategory = async () => {
+    const fetchCategory = async (currentPage: number) => {
       try {
-        const { data } = await axiosInstance.get("/category");
+        const { data } = await axiosInstance.get(
+          `/category?page=${currentPage}`
+        );
         if (data.success) {
           setCategory(data.data);
+          setTotalPages(data.pagination.pages);
+          setTotalCategories(data.pagination.total);
         }
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
@@ -124,8 +132,8 @@ export default function CategoryPage() {
         }
       }
     };
-    fetchCategory();
-  }, []);
+    fetchCategory(currentPage);
+  }, [currentPage]);
   return (
     <>
       <PageMeta
@@ -134,65 +142,78 @@ export default function CategoryPage() {
       />
       <PageBreadcrumb pageTitle="Category" />
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <Button onClick={() => openAddModal()} className="float-end">
-          Add Category
-        </Button>
-        <Table>
-          {/* Table Header */}
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-            <TableRow>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Category Name
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
-              >
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHeader>
+        <div className="flex justify-end">
+          <Button onClick={() => openAddModal()} className="">
+            Add Category
+          </Button>
+        </div>
+        <div className="overflow-hidden my-10 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+          <div className="max-w-full overflow-x-auto">
+            <Table>
+              {/* Table Header */}
+              <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                <TableRow>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Category Name
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400"
+                  >
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHeader>
 
-          {/* Table Body */}
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {category.map((c) => (
-              <TableRow key={c._id}>
-                <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                  {c.name}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
-                  <div className="flex gap-5 justify-end">
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => openEditModal(c)}
-                    >
-                      <SquarePen color="blue" size={20} />
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() =>
-                        setConfirmDelete({
-                          open: true,
-                          categoryId: c._id,
-                          categoryName: c.name,
-                        })
-                      }
-                    >
-                      <Trash2Icon color="red" size={20} />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              {/* Table Body */}
+              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                {category.map((c) => (
+                  <TableRow key={c._id}>
+                    <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                      {c.name}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-end text-theme-sm dark:text-gray-400">
+                      <div className="flex gap-5 justify-end">
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={() => openEditModal(c)}
+                        >
+                          <SquarePen color="blue" size={20} />
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={() =>
+                            setConfirmDelete({
+                              open: true,
+                              categoryId: c._id,
+                              categoryName: c.name,
+                            })
+                          }
+                        >
+                          <Trash2Icon color="red" size={20} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+        <PaginationComponent
+          totalPages={totalPages}
+          currentPage={currentPage}
+          totals={totalCategories}
+          limit={5}
+          onPageChange={(newPage) => setCurrentPage(newPage)}
+        />
       </div>
       <Modal
         isOpen={isModalOpen}

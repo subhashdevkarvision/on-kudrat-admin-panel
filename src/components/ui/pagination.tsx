@@ -75,7 +75,10 @@ export const PaginationPrevious: React.FC<PaginationButtonProps> = ({
   onClick,
   className,
 }) => (
-  <button onClick={onClick} className={`flex items-center gap-1 ${className}`}>
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-1 dark:text-white ${className}`}
+  >
     <ChevronLeftIcon size={18} />
     <span className="hidden sm:block">Previous</span>
   </button>
@@ -86,7 +89,10 @@ export const PaginationNext: React.FC<PaginationButtonProps> = ({
   onClick,
   className,
 }) => (
-  <button onClick={onClick} className={`flex items-center gap-1 ${className}`}>
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-1 dark:text-white ${className}`}
+  >
     <span className="hidden sm:block">Next</span>
     <ChevronRightIcon size={18} />
   </button>

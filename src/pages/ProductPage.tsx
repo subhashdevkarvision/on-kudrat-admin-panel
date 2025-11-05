@@ -33,6 +33,7 @@ interface Product {
   image: string;
   isFeatured: boolean;
   isBestSeller: boolean;
+  isDealOfTheWeek: boolean;
   categoryId: {
     _id: string;
     name: string;
@@ -64,6 +65,7 @@ const ProductPage = () => {
   const [editProductId, setEditProductId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [formdata, setFormData] = useState({
     name: "",
     price: "",
@@ -87,7 +89,7 @@ const ProductPage = () => {
     productName?: string;
   }>({ open: false });
   const multiOptions = [
-    { value: "isFeatured", text: "Featured", selected: false },
+    { value: "isFeartured", text: "Featured", selected: false },
     { value: "isBestSeller", text: "Best Seller", selected: false },
   ];
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,8 +250,10 @@ const ProductPage = () => {
         `/product/all-products?page=${page}&limit=5`
       );
       if (data?.success) {
+        console.log(data.products);
         setProducts(data.products);
         setTotalPages(data.totalPages);
+        setTotalProducts(data.totalProducts);
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -304,7 +308,6 @@ const ProductPage = () => {
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table>
-                {/* Table Header */}
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
                     <TableCell
@@ -335,6 +338,24 @@ const ProductPage = () => {
                       isHeader={true}
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
+                      Feartured Product
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Best Seller
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Deal of the Week
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
                       Price
                     </TableCell>
                     <TableCell
@@ -348,8 +369,6 @@ const ProductPage = () => {
                     </TableCell>
                   </TableRow>
                 </TableHeader>
-
-                {/* Table Body */}
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                   {Products?.length > 0 ? (
                     Products.map((product) => (
@@ -373,12 +392,19 @@ const ProductPage = () => {
                         <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {product.languageId?.name}
                         </TableCell>
-                        {/* Quantities */}
+                        <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {product.isFeatured ? "Yes" : "No"}
+                        </TableCell>
+                        <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {product.isBestSeller ? "Yes" : "No"}
+                        </TableCell>
+                        <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {product.isDealOfTheWeek ? "Yes" : "No"}
+                        </TableCell>
                         <TableCell className="px-4  py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {product.price}
                         </TableCell>
 
-                        {/* Payment Status */}
                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {product.discountedPrice}
                         </TableCell>
@@ -421,17 +447,20 @@ const ProductPage = () => {
               </Table>
             </div>
           </div>
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <PaginationComponent
+                currentPage={currentPage}
+                totalPages={totalPages}
+                limit={5}
+                totals={totalProducts}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </div>
       </div>
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
-          <PaginationComponent
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      )}
+
       <Modal
         onClose={() => {
           setIsModelOpen(false);

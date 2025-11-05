@@ -45,8 +45,7 @@ export default function BlogDetailPage() {
         } else {
           toast.error("Failed to load blog data");
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
         toast.error("Error loading blog");
       }
     };
@@ -142,8 +141,7 @@ export default function BlogDetailPage() {
           toast.error(data.message || "Something went wrong");
         }
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error(isEditing ? "Failed to update blog" : "Failed to add blog");
     } finally {
       setIsSubmitting(false);
