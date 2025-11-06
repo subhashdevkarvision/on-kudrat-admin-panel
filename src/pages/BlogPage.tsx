@@ -33,12 +33,15 @@ export default function BlogPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBlogs, setTotalBlogs] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const navigate = useNavigate();
 
-  const fetchBlogs = async (page = 1) => {
+  const fetchBlogs = async (page = 1, limitVal = limit) => {
     try {
-      const { data } = await axiosInstance.get(`/blog?page=${page}&limit=5`);
+      const { data } = await axiosInstance.get(
+        `/blog?page=${page}&limit=${limitVal}&sort=latest`
+      );
       if (data.success) {
         setBlogs(data.data);
         setTotalPages(data.pagination.pages);
@@ -70,8 +73,8 @@ export default function BlogPage() {
     }
   };
   useEffect(() => {
-    fetchBlogs(currentPage);
-  }, [currentPage]);
+    fetchBlogs(currentPage, limit);
+  }, [currentPage, limit]);
   return (
     <>
       <PageMeta
@@ -82,8 +85,8 @@ export default function BlogPage() {
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
         <div className="flex justify-end">
-          <Button className="" onClick={() => navigate("/blog/add")}>
-            Add blog
+          <Button className="" onClick={() => navigate("/blogs/add")}>
+            Add Blog
           </Button>
         </div>
         <div className="overflow-hidden my-10 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -135,7 +138,7 @@ export default function BlogPage() {
                             size="xs"
                             variant="outline"
                             className="rounded-full"
-                            onClick={() => navigate(`/blog/add/${b._id}`)}
+                            onClick={() => navigate(`/blogs/add/${b._id}`)}
                           >
                             <SquarePen color="blue" size={20} />
                           </Button>
@@ -173,9 +176,13 @@ export default function BlogPage() {
             <PaginationComponent
               currentPage={currentPage}
               totalPages={totalPages}
-              limit={5}
+              limit={limit}
               totals={totalBlogs}
               onPageChange={(page) => setCurrentPage(page)}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setCurrentPage(1);
+              }}
             />
           )}
         </div>

@@ -39,12 +39,14 @@ export default function OrderTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [limit, setLimit] = useState(10);
+
   useEffect(() => {
-    const fetchOrders = async (currentPage: number) => {
+    const fetchOrders = async (currentPage: number, limitVal = limit) => {
       try {
         setLoading(true);
         const { data } = await axiosInstance.get(
-          `/orders?page=${currentPage}&limit=10`
+          `/orders?page=${currentPage}&limit=${limitVal}`
         );
         if (data?.success) {
           setLoading(false);
@@ -63,8 +65,8 @@ export default function OrderTable() {
         setLoading(false);
       }
     };
-    fetchOrders(currentPage);
-  }, [currentPage]);
+    fetchOrders(currentPage, limit);
+  }, [currentPage, limit]);
   if (loading) return <p className="p-5">Loading...</p>;
 
   return (
@@ -219,9 +221,13 @@ export default function OrderTable() {
           <PaginationComponent
             totalPages={totalPages}
             currentPage={currentPage}
-            limit={10}
+            limit={limit}
             totals={totalOrders}
             onPageChange={(newPage) => setCurrentPage(newPage)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+            }}
           />
         </div>
       )}

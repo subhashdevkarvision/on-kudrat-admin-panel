@@ -11,7 +11,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../api";
 import { useEffect, useState } from "react";
-import Badge from "../components/ui/badge/Badge";
 import PaginationComponent from "../components/paginationComponent/PaginationComponent";
 
 interface User {
@@ -26,11 +25,12 @@ const UserPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [limit, setLimit] = useState(5);
 
-  const fetchAllUsers = async (currentPage: number) => {
+  const fetchAllUsers = async (currentPage: number, limitVal = limit) => {
     try {
       const { data } = await axiosInstance.get(
-        `/auth?page=${currentPage}&limit=10`
+        `/auth?page=${currentPage}&limit=${limitVal}`
       );
       if (data.success) {
         setUsers(data.data);
@@ -45,8 +45,8 @@ const UserPage = () => {
     }
   };
   useEffect(() => {
-    fetchAllUsers(currentPage);
-  }, [currentPage]);
+    fetchAllUsers(currentPage, limit);
+  }, [currentPage, limit]);
   return (
     <>
       <PageMeta
@@ -58,7 +58,6 @@ const UserPage = () => {
         <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
           <div className="max-w-full overflow-x-auto">
             <Table>
-              {/* Table Header */}
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell
@@ -77,12 +76,11 @@ const UserPage = () => {
                     isHeader={true}
                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                   >
-                    Role
+                    Created At
                   </TableCell>
                 </TableRow>
               </TableHeader>
 
-              {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {users.map((user) => (
                   <TableRow key={user._id}>
@@ -93,12 +91,9 @@ const UserPage = () => {
                       {user.email}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      <Badge
-                        size="sm"
-                        color={user.role === "user" ? "warning" : "success"}
-                      >
-                        {user.role}
-                      </Badge>
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : "-"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -111,9 +106,13 @@ const UserPage = () => {
             <PaginationComponent
               totalPages={totalPages}
               currentPage={currentPage}
-              limit={10}
+              limit={limit}
               totals={totalUsers}
               onPageChange={(newPage) => setCurrentPage(newPage)}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setCurrentPage(1);
+              }}
             />
           )}
         </div>

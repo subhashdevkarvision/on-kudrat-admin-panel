@@ -38,8 +38,8 @@ export default function LanguagePage() {
     languageId?: string;
     languageName?: string;
   }>({ open: false });
+  const [limit, setLimit] = useState(5);
 
-  // 🧾 Save Language (add or edit)
   const handleSaveLanguage = async () => {
     if (!languageName.trim()) {
       setError("Language name is required");
@@ -48,31 +48,25 @@ export default function LanguagePage() {
 
     try {
       if (editingLanguage) {
-        // ✏️ Update
         const { data } = await axiosInstance.put(
           `/language/${editingLanguage._id}`,
           { name: languageName }
         );
         if (data.success) {
           toast.success("Language updated successfully");
-          setLanguages((prev) =>
-            prev.map((lang) =>
-              lang._id === editingLanguage._id ? data.data : lang
-            )
-          );
+          fetchLanguages(currentPage);
         }
       } else {
-        // ➕ Add new
         const { data } = await axiosInstance.post("/language", {
           name: languageName,
         });
         if (data.success) {
           toast.success("Language added successfully");
           setLanguages([...languages, data.data]);
+          fetchLanguages(currentPage);
         }
       }
 
-      // Reset
       setIsModalOpen(false);
       setEditingLanguage(null);
       setLanguageName("");
@@ -94,9 +88,7 @@ export default function LanguagePage() {
       );
       if (data.success) {
         toast.success("Language deleted");
-        setLanguages((prev) =>
-          prev.filter((lang) => lang._id !== deleteModal.languageId)
-        );
+        fetchLanguages(currentPage);
         setDeleteModal({ open: false });
       }
     } catch {
@@ -104,7 +96,6 @@ export default function LanguagePage() {
     }
   };
 
-  // ✏️ Edit
   const openEditModal = (lang: Language) => {
     setEditingLanguage(lang);
     setLanguageName(lang.name);
@@ -112,7 +103,6 @@ export default function LanguagePage() {
     setError("");
   };
 
-  // ➕ Add
   const openAddModal = () => {
     setEditingLanguage(null);
     setLanguageName("");
@@ -120,28 +110,27 @@ export default function LanguagePage() {
     setError("");
   };
 
-  // 📦 Fetch
-  useEffect(() => {
-    const fetchLanguages = async (currentPage: number) => {
-      try {
-        const { data } = await axiosInstance.get(
-          `/language?page=${currentPage}`
-        );
-        if (data.success) {
-          setLanguages(data.data);
-          setTotalLanguages(data.pagination.total);
-          setTotalPages(data.pagination.pages);
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          toast.error(error?.response?.data?.message || "Something went wrong");
-        } else {
-          toast.error("Something went wrong");
-        }
+  const fetchLanguages = async (currentPage: number, limitVal = limit) => {
+    try {
+      const { data } = await axiosInstance.get(
+        `/language?page=${currentPage}&limit=${limitVal}`
+      );
+      if (data.success) {
+        setLanguages(data.data);
+        setTotalLanguages(data.pagination.total);
+        setTotalPages(data.pagination.pages);
       }
-    };
-    fetchLanguages(currentPage);
-  }, [currentPage]);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error?.response?.data?.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+  useEffect(() => {
+    fetchLanguages(currentPage, limit);
+  }, [currentPage, limit]);
 
   return (
     <>
@@ -211,13 +200,19 @@ export default function LanguagePage() {
             </Table>
           </div>
         </div>
-        <PaginationComponent
-          totalPages={totalPages}
-          onPageChange={(newPage) => setCurrentPage(newPage)}
-          totals={totalLanguages}
-          limit={5}
-          currentPage={currentPage}
-        />
+        {totalLanguages > 5 && (
+          <PaginationComponent
+            totalPages={totalPages}
+            onPageChange={(newPage) => setCurrentPage(newPage)}
+            totals={totalLanguages}
+            limit={limit}
+            currentPage={currentPage}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+            }}
+          />
+        )}
       </div>
 
       {/* Add/Edit Modal */}

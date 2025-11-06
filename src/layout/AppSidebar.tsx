@@ -66,7 +66,7 @@ const navItems: NavItem[] = [
   },
   {
     icon: <LayoutList />,
-    name: "blogs",
+    name: "Blogs",
     path: "/Blogs",
   },
 
@@ -136,7 +136,14 @@ const AppSidebar: React.FC = () => {
 
   // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
-    (path: string) => location.pathname === path,
+    (path: string) => {
+      if (path === "/") {
+        // exact match only for dashboard
+        return location.pathname === "/";
+      }
+      // case-insensitive match for all sub-routes
+      return location.pathname.toLowerCase().startsWith(path.toLowerCase());
+    },
     [location.pathname]
   );
 
@@ -337,14 +344,14 @@ const AppSidebar: React.FC = () => {
             <>
               <img
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src="/images/logo/om-kudrat-logo.svg"
                 alt="Logo"
                 width={150}
                 height={40}
               />
               <img
                 className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                src="/images/logo/om-kudrat-logo.svg"
                 alt="Logo"
                 width={150}
                 height={40}
@@ -352,10 +359,10 @@ const AppSidebar: React.FC = () => {
             </>
           ) : (
             <img
-              src="/images/logo/logo-icon.svg"
+              src="/images/logo/om-kudrat-logo.svg"
               alt="Logo"
-              width={32}
-              height={32}
+              // width={50}
+              // height={32}
             />
           )}
         </Link>

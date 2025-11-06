@@ -30,12 +30,13 @@ export default function CategoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCategories, setTotalCategories] = useState(0);
+  const [limit, setLimit] = useState(5);
+
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     categoryId?: string;
     categoryName?: string;
   }>({ open: false });
-  console.log("error", error);
   const handleSaveCategory = async () => {
     try {
       if (!categoryName.trim()) {
@@ -44,31 +45,30 @@ export default function CategoryPage() {
         return;
       }
       if (editingCategory) {
-        // ✏️ Update existing category
         const { data } = await axiosInstance.put(
           `/category/${editingCategory._id}`,
           { name: categoryName }
         );
         if (data.success) {
           toast.success("Category updated successfully");
-          setCategory((prev) =>
-            prev.map((cat) =>
-              cat._id === editingCategory._id ? data.data : cat
-            )
-          );
+          fetchCategory(currentPage);
+          // setCategory((prev) =>
+          //   prev.map((cat) =>
+          //     cat._id === editingCategory._id ? data.data : cat
+          //   )
+          // );
         }
       } else {
-        // ➕ Add new category
         const { data } = await axiosInstance.post("/category", {
           name: categoryName,
         });
         if (data.success) {
           toast.success("Category added successfully");
-          setCategory([...category, data.data]);
+          // setCategory([...category, data.data]);
+          fetchCategory(currentPage);
         }
       }
 
-      // ✅ Close modal & reset
       setIsModalOpen(false);
       setCategoryName("");
       setEditingCategory(null);
@@ -89,9 +89,10 @@ export default function CategoryPage() {
       );
       if (data.success) {
         toast.success("Category deleted");
-        setCategory((prev) =>
-          prev.filter((cat) => cat._id !== confirmDelete.categoryId)
-        );
+        // setCategory((prev) =>
+        //   prev.filter((cat) => cat._id !== confirmDelete.categoryId)
+        // );
+        fetchCategory(currentPage);
         setConfirmDelete({ open: false });
       }
     } catch {
@@ -105,7 +106,6 @@ export default function CategoryPage() {
     setError("");
   };
 
-  // ➕ Open modal for add
   const openAddModal = () => {
     setEditingCategory(null);
     setCategoryName("");
@@ -113,27 +113,27 @@ export default function CategoryPage() {
     setError("");
   };
 
-  useEffect(() => {
-    const fetchCategory = async (currentPage: number) => {
-      try {
-        const { data } = await axiosInstance.get(
-          `/category?page=${currentPage}`
-        );
-        if (data.success) {
-          setCategory(data.data);
-          setTotalPages(data.pagination.pages);
-          setTotalCategories(data.pagination.total);
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          toast.error(error?.response?.data?.message || "Something went wrong");
-        } else {
-          toast.error("Something went wrong");
-        }
+  const fetchCategory = async (currentPage: number, limitVal = limit) => {
+    try {
+      const { data } = await axiosInstance.get(
+        `/category?page=${currentPage}&limit=${limitVal}`
+      );
+      if (data.success) {
+        setCategory(data.data);
+        setTotalPages(data.pagination.pages);
+        setTotalCategories(data.pagination.total);
       }
-    };
-    fetchCategory(currentPage);
-  }, [currentPage]);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error?.response?.data?.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+  useEffect(() => {
+    fetchCategory(currentPage, limit);
+  }, [currentPage, limit]);
   return (
     <>
       <PageMeta
@@ -150,7 +150,6 @@ export default function CategoryPage() {
         <div className="overflow-hidden my-10 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
           <div className="max-w-full overflow-x-auto">
             <Table>
-              {/* Table Header */}
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell
@@ -168,7 +167,6 @@ export default function CategoryPage() {
                 </TableRow>
               </TableHeader>
 
-              {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {category.map((c) => (
                   <TableRow key={c._id}>
@@ -207,20 +205,21 @@ export default function CategoryPage() {
             </Table>
           </div>
         </div>
-        <PaginationComponent
-          totalPages={totalPages}
-          currentPage={currentPage}
-          totals={totalCategories}
-          limit={5}
-          onPageChange={(newPage) => setCurrentPage(newPage)}
-        />
+        {totalCategories > 5 && (
+          <PaginationComponent
+            totalPages={totalPages}
+            currentPage={currentPage}
+            totals={totalCategories}
+            limit={limit}
+            onPageChange={(newPage) => setCurrentPage(newPage)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+            }}
+          />
+        )}
       </div>
-      <Modal
-        isOpen={isModalOpen}
-        // className="w-[100px]"
-        // isFullscreen={true}
-        onClose={() => setIsModalOpen(false)}
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <div className="p-6 m-0 w-full max-w-[500px]">
           <h2 className="text-lg font-semibold  dark:text-gray-400 mb-4">
             Add New Category

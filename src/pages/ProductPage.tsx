@@ -66,6 +66,8 @@ const ProductPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  const [limit, setLimit] = useState(5);
+
   const [formdata, setFormData] = useState({
     name: "",
     price: "",
@@ -243,11 +245,11 @@ const ProductPage = () => {
       toast.error("Something went wrong");
     }
   };
-  const fetchProducts = async (page = 1) => {
+  const fetchProducts = async (page = 1, limitVal = limit) => {
     try {
       setLoading(true);
       const { data } = await axiosInstance.get(
-        `/product/all-products?page=${page}&limit=5`
+        `/product/all-products?page=${page}&limit=${limitVal}`
       );
       if (data?.success) {
         console.log(data.products);
@@ -285,10 +287,10 @@ const ProductPage = () => {
     fetchProducts(page);
   };
   useEffect(() => {
-    fetchProducts(currentPage);
+    fetchProducts(currentPage, limit);
     fetchAllCategory();
     fetchLanguages();
-  }, [currentPage]);
+  }, [currentPage, limit]);
   if (loading) return <p className="p-5">Loading...</p>;
   return (
     <>
@@ -447,14 +449,18 @@ const ProductPage = () => {
               </Table>
             </div>
           </div>
-          {totalPages > 1 && (
+          {totalProducts > 5 && (
             <div className="mt-6 flex justify-center">
               <PaginationComponent
                 currentPage={currentPage}
                 totalPages={totalPages}
-                limit={5}
+                limit={limit}
                 totals={totalProducts}
                 onPageChange={handlePageChange}
+                onLimitChange={(newLimit) => {
+                  setLimit(newLimit);
+                  setCurrentPage(1);
+                }}
               />
             </div>
           )}

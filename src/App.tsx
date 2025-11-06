@@ -39,8 +39,8 @@ export default function App() {
             <Route path="/language" element={<LanguagePage />} />
             <Route path="/users" element={<UserPage />} />
             <Route path="/blogs" element={<BlogPage />} />
-            <Route path="/blog/add" element={<BlogDetailPage />} />
-            <Route path="/blog/add/:id" element={<BlogDetailPage />} />
+            <Route path="/blogs/add" element={<BlogDetailPage />} />
+            <Route path="/blogs/add/:id" element={<BlogDetailPage />} />
           </Route>
           <Route path="/signin" element={<SignIn />} />
         </Routes>
