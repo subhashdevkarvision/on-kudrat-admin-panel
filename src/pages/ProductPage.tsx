@@ -24,6 +24,7 @@ import MultiSelect from "../components/form/MultiSelect";
 // import Checkbox from "../components/form/input/Checkbox";
 import FileInput from "../components/form/input/FileInput";
 import PaginationComponent from "../components/paginationComponent/PaginationComponent";
+import Checkbox from "../components/form/input/Checkbox";
 
 interface Product {
   _id: string;
@@ -76,6 +77,7 @@ const ProductPage = () => {
     language: "",
     isBestSeller: false,
     isFeartured: false,
+    isDealOfTheWeek: false,
   });
   const [errors, setErrors] = useState<ValidationErrors>({
     name: "",
@@ -158,6 +160,7 @@ const ProductPage = () => {
       language: product.languageId._id,
       isBestSeller: product.isBestSeller,
       isFeartured: product.isFeatured,
+      isDealOfTheWeek: product.isDealOfTheWeek,
     });
 
     setImagePreview(`${import.meta.env.VITE_BACKEND_URL}${product.image}`);
@@ -171,6 +174,7 @@ const ProductPage = () => {
       language: "",
       isBestSeller: false,
       isFeartured: false,
+      isDealOfTheWeek: false,
     });
     setErrors({
       name: "",
@@ -219,6 +223,7 @@ const ProductPage = () => {
     formDataToSend.append("languageId", formdata.language);
     formDataToSend.append("isBestSeller", String(formdata.isBestSeller));
     formDataToSend.append("isFeatured", String(formdata.isFeartured));
+    formDataToSend.append("isDealOfTheWeek", String(formdata.isDealOfTheWeek));
     // formDataToSend.append("isDealOfTheWeek", String(isDealOfTheWeek));
     if (image) {
       formDataToSend.append("image", image);
@@ -238,7 +243,6 @@ const ProductPage = () => {
         fetchProducts();
       }
     } catch (error) {
-      console.log(error);
       if (axios.isAxiosError(error)) {
         toast.error(error?.response?.data?.message);
       }
@@ -252,7 +256,6 @@ const ProductPage = () => {
         `/product/all-products?page=${page}&limit=${limitVal}`
       );
       if (data?.success) {
-        console.log(data.products);
         setProducts(data.products);
         setTotalPages(data.totalPages);
         setTotalProducts(data.totalProducts);
@@ -574,12 +577,14 @@ const ProductPage = () => {
                 }));
               }}
             />
-            {/* <Checkbox
+            <Checkbox
               label="Deal of the week"
-              checked={isDealOfTheWeek}
-              onChange={setIsDealOfTheWeek}
+              checked={formdata.isDealOfTheWeek}
+              onChange={(checked) =>
+                setFormData((prev) => ({ ...prev, isDealOfTheWeek: checked }))
+              }
             />
-            <Label htmlFor="Image">Image</Label> */}
+            <Label htmlFor="Image">Image</Label>
             <div>
               <Label htmlFor="image">Image</Label>
               <FileInput name="image" onChange={handleImageChange} />

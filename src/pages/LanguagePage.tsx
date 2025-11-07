@@ -17,6 +17,7 @@ import { Modal } from "../components/ui/modal";
 import Input from "../components/form/input/InputField";
 import Label from "../components/form/Label";
 import PaginationComponent from "../components/paginationComponent/PaginationComponent";
+import { DeleteError } from "./CategoryPage";
 
 export interface Language {
   _id: string;
@@ -33,6 +34,8 @@ export default function LanguagePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalLanguages, setTotalLanguages] = useState(0);
+  const [deleteError, setDeleteError] = useState<DeleteError[]>([]);
+
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     languageId?: string;
@@ -91,8 +94,14 @@ export default function LanguagePage() {
         fetchLanguages(currentPage);
         setDeleteModal({ open: false });
       }
-    } catch {
-      toast.error("Failed to delete language");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.status === 409) {
+          setDeleteError(error.response?.data.linkedProducts);
+        } else {
+          toast.error("Failed to delete category");
+        }
+      }
     }
   };
 
@@ -267,10 +276,23 @@ export default function LanguagePage() {
             </span>
             ?
           </p>
+          {deleteError.length > 0 && (
+            <p className="mb-8 text-red-600">
+              Cannot delete this language. Please reassign the following
+              products to a different language:{" "}
+              <span className="text-black">
+                {deleteError.map((item) => item.name).join(", ")}
+              </span>
+              .
+            </p>
+          )}
           <div className="flex justify-end gap-4">
             <Button
               variant="outline"
-              onClick={() => setDeleteModal({ open: false })}
+              onClick={() => {
+                setDeleteModal({ open: false });
+                setDeleteError([]);
+              }}
             >
               Cancel
             </Button>

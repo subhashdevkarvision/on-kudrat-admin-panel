@@ -21,6 +21,9 @@ export interface Category {
   _id: string;
   name: string;
 }
+export interface DeleteError {
+  name: string;
+}
 export default function CategoryPage() {
   const [category, setCategory] = useState<Category[]>([]);
   const [categoryName, setCategoryName] = useState("");
@@ -31,6 +34,7 @@ export default function CategoryPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCategories, setTotalCategories] = useState(0);
   const [limit, setLimit] = useState(5);
+  const [deleteError, setDeleteError] = useState<DeleteError[]>([]);
 
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
@@ -41,7 +45,6 @@ export default function CategoryPage() {
     try {
       if (!categoryName.trim()) {
         setError("Please enter a category name");
-        console.log(error);
         return;
       }
       if (editingCategory) {
@@ -95,8 +98,14 @@ export default function CategoryPage() {
         fetchCategory(currentPage);
         setConfirmDelete({ open: false });
       }
-    } catch {
-      toast.error("Failed to delete category");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.status === 409) {
+          setDeleteError(error.response?.data.linkedProducts);
+        } else {
+          toast.error("Failed to delete category");
+        }
+      }
     }
   };
   const openEditModal = (cat: Category) => {
@@ -268,10 +277,23 @@ export default function CategoryPage() {
             </span>
             ?
           </p>
+          {deleteError.length > 0 && (
+            <p className="mb-8 text-red-600">
+              Cannot delete this category. Please reassign the following
+              products to a different category:{" "}
+              <span className="text-black">
+                {deleteError.map((item) => item.name).join(", ")}
+              </span>
+              .
+            </p>
+          )}
           <div className="flex justify-end gap-4">
             <Button
               variant="outline"
-              onClick={() => setConfirmDelete({ open: false })}
+              onClick={() => {
+                setConfirmDelete({ open: false });
+                setDeleteError([]);
+              }}
             >
               Cancel
             </Button>
